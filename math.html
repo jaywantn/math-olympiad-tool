@@ -2,51 +2,119 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>2nd Grade Math Olympiad Quiz</title>
+  <title>2nd Grade Math Olympiad - 10 Random Question Quiz</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; }
-    .question { font-weight: bold; margin-top: 1.5rem; }
-    .options label { display: block; margin: 0.5rem 0; }
+    body { font-family: Arial, sans-serif; max-width: 650px; margin: 2rem auto; }
+    .question { font-weight: bold; margin-top: 1.2rem; }
+    .options label { display: block; margin: 0.3rem 0; }
     .hidden { display: none; }
     #score { font-weight: bold; color: darkgreen; margin-top: 2rem; }
     #controls { margin-bottom: 2rem; }
   </style>
 </head>
 <body>
-  <h2>2nd Grade Math Olympiad Quiz</h2>
+  <h2>2nd Grade Math Olympiad - 10 Random Question Quiz</h2>
   <div id="controls">
-    <button id="generate-random">Generate Random Question</button>
+    <button id="generate-quiz">Generate New 10-Question Quiz</button>
     <button id="submit-answers">Submit Answers and Score</button>
     <button id="reveal-answers">Reveal All Answers</button>
   </div>
   <div id="quiz"></div>
   <div id="score"></div>
   <script>
-    // Add your full question set
-    const questions = [
-      {text: 'Which number is greatest?', options: ['67','52','49','36'], answer: 0},
-      {text: 'What is the sum of 23 and 19?', options: ['32','42','41','36'], answer: 2},
-      {text: 'If you have 4 dimes and 3 nickels, how much money?', options: ['55 cents','40 cents','35 cents','43 cents'], answer: 0},
-      {text: 'Which object has the most corners?', options: ['Square', 'Triangle', 'Circle', 'Rectangle'], answer: 3},
-      {text: 'What comes next: 8, 12, 16, ___?', options: ['20', '18', '22', '24'], answer: 0},
-      {text: 'Lucy collected 65 seashells, friend found 25. How many in total?', options: ['80', '90', '75', '85'], answer: 0},
-      {text: 'If you subtract 15 from 40?', options: ['25', '30', '35', '20'], answer: 0},
-      {text: 'Which clock shows time 10 minutes to 9?', options: ['8:50', '9:10', '9:50', '8:45'], answer: 0},
-      {text: 'How many days in a fortnight?', options: ['14', '10', '12', '7'], answer: 0},
-      {text: 'Alice spends 530 cents shopping, 60 cents travel from 800 cents. Money left?', options: ['170', '210', '200', '130'], answer: 1}
-    ];
-    
-    let usedQuestions = [];
-    const quizContainer = document.getElementById('quiz');
-    const scoreDiv = document.getElementById('score');
+    // --- QUESTION GENERATORS ---
+    function genAddition() {
+      let a = Math.floor(Math.random() * 50) + 10;
+      let b = Math.floor(Math.random() * 41) + 10;
+      let correct = a + b;
+      let options = genOptions(correct, 4, 6, 1);
+      return {
+        text: `What is the sum of ${a} and ${b}?`,
+        options: options,
+        answer: options.indexOf(correct.toString())
+      }
+    }
+    function genSubtraction() {
+      let a = Math.floor(Math.random() * 41) + 40;
+      let b = Math.floor(Math.random() * 31) + 5;
+      let correct = a - b;
+      let options = genOptions(correct, 4, 5, 1);
+      return {
+        text: `What is ${a} minus ${b}?`,
+        options: options,
+        answer: options.indexOf(correct.toString())
+      }
+    }
+    function genComparison() {
+      let a = Math.floor(Math.random() * 90) + 10;
+      let b = Math.floor(Math.random() * 90) + 10;
+      let c = Math.floor(Math.random() * 90) + 10;
+      let correct = Math.max(a, b, c);
+      let arr = shuffle([a,b,c]);
+      let options = arr.map(x=>x.toString());
+      while(options.length < 4) {
+        let fake = correct + Math.floor(Math.random() * 9 + 1);
+        if(!options.includes(fake.toString())) options.push(fake.toString());
+      }
+      options = shuffle(options);
+      return {
+        text: 'Which number is greatest?',
+        options: options,
+        answer: options.indexOf(correct.toString())
+      }
+    }
+    function genSequence() {
+      let start = Math.floor(Math.random() * 20);
+      let diff = Math.floor(Math.random() * 3) + 2;
+      let answers = [start, start+diff, start+2*diff, start+3*diff];
+      let correct = start + 4 * diff;
+      let options = genOptions(correct, 4, 6, 1);
+      return {
+        text: `What comes next: ${answers[0]}, ${answers[1]}, ${answers[2]}, ${answers[3]}, ___?`,
+        options: options,
+        answer: options.indexOf(correct.toString())
+      }
+    }
+    function genMoney() {
+      let dimes = Math.floor(Math.random() * 5) + 2;
+      let nickels = Math.floor(Math.random() * 5) + 2;
+      let correct = dimes*10 + nickels*5;
+      let options = genOptions(correct, 4, 10, 5, ' cents');
+      return {
+        text: `If you have ${dimes} dimes and ${nickels} nickels, how much money (in cents)?`,
+        options: options,
+        answer: options.indexOf(correct + ' cents')
+      }
+    }
+    function genOptions(correct, n, range, step, suffix='') {
+      let opts = [correct + suffix];
+      while (opts.length < n) {
+        let fake = correct + (Math.floor(Math.random()*range)*step) - Math.floor(range/2)*step;
+        if(fake !== correct && fake > 0 && !opts.includes(fake + suffix)) {
+          opts.push(fake + suffix);
+        }
+      }
+      return shuffle(opts.map(x=>x.toString()));
+    }
+    function shuffle(arr) {
+      let a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+    // -------- END GENERATORS --------
+    const generators = [genAddition, genSubtraction, genComparison, genSequence, genMoney];
+    let currentQuizSet = [];
 
     function buildQuiz(questionSet) {
+      const quizContainer = document.getElementById('quiz');
       quizContainer.innerHTML = '';
       questionSet.forEach((q, idx) => {
         const qDiv = document.createElement('div');
         qDiv.className = 'question';
         qDiv.innerText = `${idx + 1}. ${q.text}`;
-  
         const optionsDiv = document.createElement('div');
         optionsDiv.className = 'options';
         q.options.forEach((opt, i) => {
@@ -62,7 +130,7 @@
         const hiddenAns = document.createElement('div');
         hiddenAns.className = 'hidden';
         hiddenAns.id = `answer${idx}`;
-        hiddenAns.innerText = `Answer: ${String.fromCharCode(97+q.answer)}`;
+        hiddenAns.innerText = `Answer: ${String.fromCharCode(97+q.answer)} (${q.options[q.answer]})`;
         optionsDiv.addEventListener('change', function(e) {
           if (e.target.name === `question${idx}`) hiddenAns.className = '';
         });
@@ -70,38 +138,35 @@
         qDiv.appendChild(hiddenAns);
         quizContainer.appendChild(qDiv);
       });
+      document.getElementById('score').innerHTML = '';
+      currentQuizSet = questionSet;
     }
 
-    // Button - Generate Random Question
-    document.getElementById('generate-random').onclick = function() {
-      // Pick a random unused question
-      if (usedQuestions.length === questions.length) usedQuestions = [];
-      let idx;
-      do { idx = Math.floor(Math.random() * questions.length); }
-      while (usedQuestions.includes(idx));
-      usedQuestions.push(idx);
-      buildQuiz([questions[idx]]);
-      scoreDiv.innerHTML = '';
+    document.getElementById('generate-quiz').onclick = function() {
+      let questions = [];
+      for (let i = 0; i < 10; i++) {
+        let g = generators[Math.floor(Math.random()*generators.length)];
+        questions.push(g());
+      }
+      buildQuiz(questions);
     };
 
-    // Button - Reveal all answers
+    document.getElementById('submit-answers').onclick = function() {
+      let score = 0;
+      let total = currentQuizSet.length;
+      currentQuizSet.forEach((q, idx) => {
+        const selected = document.querySelector(`input[name='question${idx}']:checked`);
+        if (selected && parseInt(selected.value) === q.answer) score++;
+      });
+      document.getElementById('score').innerHTML = `Score: ${score} / ${total}`;
+    };
+
     document.getElementById('reveal-answers').onclick = function() {
       document.querySelectorAll('[id^=answer]').forEach(ans => ans.className = '');
     };
 
-    // Button - Submit answers and display score
-    document.getElementById('submit-answers').onclick = function() {
-      let score = 0;
-      let total = quizContainer.querySelectorAll('.question').length;
-      quizContainer.querySelectorAll('.question').forEach((qDiv, idx) => {
-        const selected = qDiv.querySelector('input[type=radio]:checked');
-        if (selected && parseInt(selected.value) === questions[usedQuestions[idx] ?? idx].answer) score++;
-      });
-      scoreDiv.innerHTML = `Score: ${score} / ${total}`;
-    };
-
-    // Initialize full quiz on page load
-    buildQuiz(questions);
+    // Generate when page loads
+    document.getElementById('generate-quiz').onclick();
   </script>
 </body>
 </html>
